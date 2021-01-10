@@ -3,16 +3,17 @@ const bodyParser = require("body-parser");
 // const cors = require("cors");
 
 const app = express();
+app.use(express.static('public/'));
 
 app.use(bodyParser.json());
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// simple route
-app.get("/", (req, res) => {
-    res.json({ message: "Hello manager delivery" });
-});
-require("./app/routes/product_routes")(app);
+// // simple route
+// app.get("/", (req, res) => {
+//     res.json({ message: "Hello manager delivery" });
+// });
+require("./app/routes/ship_routes")(app);
 // set port, listen for requests
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
