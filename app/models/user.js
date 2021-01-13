@@ -1,9 +1,8 @@
 module.exports = mongoose => {
     var schema = mongoose.Schema(
         {
-            userName: String,
-            password:String,
-
+            accountName: String,
+            password: String,
         },
         { timestamps: true }
     );
@@ -12,6 +11,6 @@ module.exports = mongoose => {
         object.id = _id;
         return object;
     });
-    const test = mongoose.model("account", schema);
-    return test;
+    const user = mongoose.model("accounts", schema);
+    return user;
 };

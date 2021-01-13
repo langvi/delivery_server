@@ -34,19 +34,49 @@ exports.findProductByCustomer = async (req, res) => {
         });
     }
 }
-exports.findAllCustomer = (req, res) => {
-    Customer.find().then(data => {
-        if (!data) {
+exports.findAllCustomer = async (req, res) => {
+    var countCustomer = await Customer.count();
+    Customer.find({}, { name: 1, phoneNumber: 1, avatarUrl: 1, address: 1 }).
+        then(data => {
             res.send({
                 message: "Thành công",
                 isSuccess: true,
-                data: data
+                data: {
+                    customer: data,
+                    totalCustomer: countCustomer
+                }
             });
-        }
-    }).catch(error => {
-        res.status(500).send({
-            message:
-                err.message || "Lỗi "
+        }).catch(error => {
+            res.status(500).send({
+                message:
+                    err.message || "Lỗi "
+            });
         });
-    });
+}
+exports.updateCustomer = (req, res) => {
+    if (!req.body) {
+        return res.status(400).send({
+            message: "Dữ liệu không được để trống"
+        });
+    }
+
+    const id = req.params.id;
+
+    Customer.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
+        .then(data => {
+            if (!data) {
+                res.status(404).send({
+                    message: "Không thể cập nhật dữ liệu"
+                });
+            } else res.send({
+                message: "Cập nhật thành công",
+                isSuccess: true,
+                data: null
+            });
+        })
+        .catch(err => {
+            res.status(500).send({
+                message: "Có lỗi xảy ra khi cập nhật"
+            });
+        });
 }

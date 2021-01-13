@@ -6,7 +6,7 @@ const db = {
     mongoose : mongoose,
     url : dbConfig.url,
     Product: require("./product.js")(mongoose),
-    login: require("./login.js")(mongoose),
+    User: require("./user.js")(mongoose),
     Customer:  require("./customer.js")(mongoose),
     Employee:  require("./employee.js")(mongoose)
 

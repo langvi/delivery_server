@@ -140,6 +140,30 @@ exports.inforProduct = async (req, res) => {
         });
     }
 }
+exports.getInforCustomer = async (req, res) => {
+    const customer = db.Customer;
+    var { id } = req.query;
+    var data = await customer.find({ products: [id] });
+    if (data.length != 0) {
+        res.send({
+            message: "Thành công",
+            isSuccess: true,
+            data: {
+                'name': data[0].name,
+                'phoneNumber': data[0].phoneNumber,
+                'address': data[0].address
+            }
+        });
+    } else {
+        res.send({
+            message: "Lỗi",
+            isSuccess: false,
+            data: data
+        });
+    }
+
+
+}
 exports.findAll = (req, res) => {
     const pageSize = 10;
     var { pageIndex } = req.query;
@@ -203,7 +227,11 @@ exports.update = (req, res) => {
                 res.status(404).send({
                     message: "Không thể cập nhật dữ liệu"
                 });
-            } else res.send({ message: "Cập nhật thành công" });
+            } else res.send({
+                message: "Cập nhật thành công",
+                isSuccess: true,
+                data: null
+            });
         })
         .catch(err => {
             res.status(500).send({

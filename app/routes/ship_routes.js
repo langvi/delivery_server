@@ -1,40 +1,49 @@
 module.exports = app => {
   const productCtr = require("../controller/product_controller.js");
   const login = require("../controller/login_controller.js");
+  const authMiddle = require("../helper/auth_middleware.js");
+  const auth = require("../controller/auth_controller.js");
   const customer = require("../controller/customer_controller.js");
   const employee = require("../controller/employee_controller.js");
 
   var router = require("express").Router();
+  // for login
+  router.post("/login/", auth.login, authMiddle.isAuth);
+
+
+
+  // router.get("/getAccounts/", login.findAll);
+
   // for product 
-  router.post("/addProduct/", productCtr.create);
-  router.get("/getInfor/", productCtr.inforProduct);
+  router.post("/addProduct/", authMiddle.isAuth, productCtr.create);
+  router.get("/getInfor/", authMiddle.isAuth, productCtr.inforProduct);
 
-  router.post("/enterProduct/", productCtr.enterProducts);
+  router.post("/enterProduct/", authMiddle.isAuth, productCtr.enterProducts);
 
-  router.get("/getAllProduct/", productCtr.findAll);
+  router.get("/getAllProduct/", authMiddle.isAuth, productCtr.findAll);
+  router.get("/getInforCustomer/", authMiddle.isAuth, productCtr.getInforCustomer);
   // router.get("/published", tutorials.findAllPublished);
 
-  router.get("/getProduct/:id", productCtr.findOne);
+  router.get("/getProduct/:id", authMiddle.isAuth, productCtr.findOne);
 
-  router.put("/updateProduct/:id", productCtr.update);
+  router.put("/updateProduct/:id", authMiddle.isAuth, productCtr.update);
 
-  router.delete("/deleteProduct/:id", productCtr.delete);
+  router.delete("/deleteProduct/:id", authMiddle.isAuth, productCtr.delete);
 
   // router.delete("/", tutorials.deleteAll);
 
-  // for login
-  router.post("/addAccount/", login.create);
 
-  router.get("/getAccounts/", login.findAll);
   // for customer
-  router.get("/getProductCustomer/", customer.findProductByCustomer);
+  router.get("/getProductCustomer/", authMiddle.isAuth, customer.findProductByCustomer);
 
-  router.get("/getAllCustomer/", customer.findAllCustomer);
+  router.get("/getAllCustomer/", authMiddle.isAuth, customer.findAllCustomer);
+  router.put("/updateCustomer/:id", authMiddle.isAuth, customer.updateCustomer);
 
   // for employee 
-  router.get("/getAllEmployee/", employee.findAll);
-  router.get("/getDetailEmployee/", employee.findDetailEmployee);
-  router.get("/findProductByTime/", employee.findProductsByTime);
+  router.get("/getAllEmployee/", authMiddle.isAuth, employee.findAll);
+  router.get("/getDetailEmployee/", authMiddle.isAuth, employee.findDetailEmployee);
+  router.get("/findProductByTime/", authMiddle.isAuth, employee.findProductsByTime);
+  router.put("/updateEmployee/:id", authMiddle.isAuth, employee.updateEmployee);
 
 
 
