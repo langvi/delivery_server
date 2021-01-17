@@ -7,16 +7,35 @@ exports.findProductByCustomer = async (req, res) => {
         var data = await Customer.findOne({ _id });
         if (data) {
             var productIds = data.products;
-            var productEm = [];
+            var listProduct = [];
             const Product = db.Product;
             for (var index = 0; index < productIds.length; index++) {
                 var product = await Product.findById(productIds[index]);
-                productEm.push(product);
+                listProduct.push(product);
             }
+            var totalGetting = 0;
+            var totalShipping = 0;
+            var totalShiped = 0;
+            listProduct.forEach(element => {
+                if (element.statusShip == 0 || element.statusShip == 2) {
+                    totalGetting++;
+                } else if (element.statusShip == 1 && element.isSuccess == false) {
+                    totalShipping++;
+                } else {
+                    totalShiped++;
+                }
+            });
             res.send({
                 message: "Thành công",
                 isSuccess: true,
-                data: productEm
+                data: {
+                    products: listProduct,
+                    totalCreate: listProduct.length,
+                    totalGetting: totalGetting,
+                    totalShipping: totalShipping,
+                    totalShiped: totalShiped
+
+                }
             });
         }
         else {

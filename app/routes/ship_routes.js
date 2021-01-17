@@ -16,12 +16,17 @@ module.exports = app => {
 
   // for product 
   router.post("/addProduct/", authMiddle.isAuth, productCtr.create);
+
   router.get("/getInfor/", authMiddle.isAuth, productCtr.inforProduct);
 
   router.post("/enterProduct/", authMiddle.isAuth, productCtr.enterProducts);
 
   router.get("/getAllProduct/", authMiddle.isAuth, productCtr.findAll);
+
   router.get("/getInforCustomer/", authMiddle.isAuth, productCtr.getInforCustomer);
+
+  router.get("/getInforProductByTime/", authMiddle.isAuth, productCtr.getInforProductByTime);
+  // router.get("/getInforProductByTime/", productCtr.getInforProductByTime);
   // router.get("/published", tutorials.findAllPublished);
 
   router.get("/getProduct/:id", authMiddle.isAuth, productCtr.findOne);

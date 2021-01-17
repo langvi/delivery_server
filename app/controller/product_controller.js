@@ -140,10 +140,32 @@ exports.inforProduct = async (req, res) => {
         });
     }
 }
+exports.getInforProductByTime = async (req, res) => {
+    var { fromDate } = req.query;
+    var { toDate } = req.query;
+    var date1 = new Date(fromDate);
+    var date2 = new Date(toDate);
+    var products = [];
+    var data = await Product.find();
+    if (data) {
+        for (var i = 0; i < data.length; i++) {
+            if (data[i].createdAt != null) {
+                if (data[i].createdAt.getTime() > date1.getTime() && data[i].createdAt.getTime() < date2.getTime()) {
+                    products.push(data[i]);
+                }
+            }
+
+        }
+        res.send({
+            message: "Success",
+            data: products
+        });
+    }
+}
 exports.getInforCustomer = async (req, res) => {
     const customer = db.Customer;
     var { id } = req.query;
-    var data = await customer.find({ products: [id] });
+    var data = await customer.find({ products: { $all: [id] } });
     if (data.length != 0) {
         res.send({
             message: "Thành công",
