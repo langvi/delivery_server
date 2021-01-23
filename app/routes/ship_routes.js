@@ -1,6 +1,5 @@
 module.exports = app => {
   const productCtr = require("../controller/product_controller.js");
-  const login = require("../controller/login_controller.js");
   const authMiddle = require("../helper/auth_middleware.js");
   const auth = require("../controller/auth_controller.js");
   const customer = require("../controller/customer_controller.js");

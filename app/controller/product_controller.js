@@ -15,16 +15,14 @@ exports.create = (req, res) => {
         addressReceive: req.body.addressReceive,
         shipedAt: null,
         shippingAt: null,
-        createdAt: new Date(),
+        createAtTime: new Date().getTime(),
         enterAt: null,
         costShip: req.body.costShip,
         costProduct: req.body.costProduct,
         phoneSend: req.body.phoneSend,
         phoneReceive: req.body.phoneReceive,
         note: req.body.note,
-        statusShip: 2,
-        isSuccess: false,
-        isEnter: false
+        status: 0,
 
     });
     product.save(product).then(data => {
@@ -44,67 +42,48 @@ exports.enterProducts = async (req, res) => {
     const id = req.body.productId;
     try {
         var data = await Product.findOne().where('_id').equals(id);
-        if (data.isEnter == true) {
+        if (data.status == 7) {
             res.send({
                 message: "Đơn hàng đã nhập",
                 isSuccess: false,
                 data: null
             });
         }
-        else {
-            if (data.isSuccess == true) {
-                if (data.statusShip == 0) {
-                    // lấy hàng thành công
-                    var result = await Product.findByIdAndUpdate(id, {
-                        isEnter: true,
-                        isSuccess: false,
-                        enterAt: new Date(),
-                        statusShip: 1,
-                        useFindAndModify: false
-                    });
-                    if (result) {
-                        var product = await Product.findOne().where('_id').equals(id);
-                        res.send({
-                            message: "Nhập thành công",
-                            isSuccess: true,
-                            data: product
-                        });
-                    }
-                } else if (data.statusShip == 1) {
-                    // giao hàng thành công
-                    res.send({
-                        message: "Đơn hàng đã giao",
-                        isSuccess: false,
-                        data: null
-                    });
-                }
-
-
-            } else {
-                if (data.statusShip == 0) {
-                    res.send({
-                        message: "Đơn hàng chưa được lấy thành công",
-                        isSuccess: false,
-                        data: null
-                    });
-
-                }
-                else {
-                    var result = await Product.findByIdAndUpdate(id, {
-                        isEnter: true, enterAt: new Date(),
-                        isSuccess: false, useFindAndModify: false
-                    });
-                    if (result) {
-                        var product = await Product.findOne().where('_id').equals(id);
-                        res.send({
-                            message: "Nhập thành công",
-                            isSuccess: true,
-                            data: product
-                        });
-                    }
-                }
-
+        else if (data.status == 2 || data.status == 5) {
+            var result = await Product.findByIdAndUpdate(id, {
+                enterAt: new Date().getTime(),
+                status: 7,
+                useFindAndModify: false
+            });
+            if (result) {
+                var product = await Product.findOne().where('_id').equals(id);
+                res.send({
+                    message: "Nhập thành công",
+                    isSuccess: true,
+                    data: product
+                });
             }
+        }
+        else if (data.status == 1 || data.status == 3 || data.status == 0) {
+            res.send({
+                message: "Đơn hàng chưa lấy thành công",
+                isSuccess: false,
+                data: null
+            });
+        }
+        else if (data.status == 4) {
+            res.send({
+                message: "Đơn hàng đang giao",
+                isSuccess: false,
+                data: null
+            });
+        }
+        else {
+            res.send({
+                message: "Đơn hàng đã giao",
+                isSuccess: false,
+                data: null
+            });
         }
 
     } catch (e) {
@@ -118,16 +97,15 @@ exports.enterProducts = async (req, res) => {
 exports.inforProduct = async (req, res) => {
     try {
         var countProduct = await Product.count();
-        var countWait = await Product.count({ statusShip: 2 });
-        var countGetting = await Product.count({ statusShip: 0 });
-        var countShipping = await Product.count({ statusShip: 1, isSuccess: false });
-        var countShiped = await Product.count({ statusShip: 1, isSuccess: true });
+        var countGetting = await Product.count({ status: [0, 1, 2, 3] });
+        var countShipping = await Product.count({ status: [4, 5, 7] });
+        var countShiped = await Product.count({ status: 6 });
         res.send({
             message: "Thành công",
             isSuccess: true,
             data: {
                 'TotalProduct': countProduct,
-                'TotalGetting': countGetting + countWait,
+                'TotalGetting': countGetting,
                 'TotalShipping': countShipping,
                 'TotalShiped': countShiped,
             }
@@ -143,24 +121,55 @@ exports.inforProduct = async (req, res) => {
 exports.getInforProductByTime = async (req, res) => {
     var { fromDate } = req.query;
     var { toDate } = req.query;
-    var date1 = new Date(fromDate);
-    var date2 = new Date(toDate);
-    var products = [];
-    var data = await Product.find();
-    if (data) {
-        for (var i = 0; i < data.length; i++) {
-            if (data[i].createdAt != null) {
-                if (data[i].createdAt.getTime() > date1.getTime() && data[i].createdAt.getTime() < date2.getTime()) {
-                    products.push(data[i]);
-                }
-            }
-
-        }
+    if (fromDate == '' || toDate == '') {
+        var countGetting = await Product.count({ status: [0, 1, 2, 3] });
+        var countShipping = await Product.count({ status: [4, 5, 7] });
+        var countShiped = await Product.count({ status: 6 });
         res.send({
-            message: "Success",
-            data: products
+            message: 'Thành công',
+            isSuccess: true,
+            data: {
+                countGetting: countGetting,
+                countShipping: countShipping,
+                countShiped: countShiped
+            }
+        })
+    }else{
+        var getting = await Product.count({
+            'createAtTime': {
+                '$gt': fromDate,
+                '$lt': toDate
+            },
+           status: [0, 1, 2, 3]
+    
+        });
+        var shipping = await Product.count({
+            'createAtTime': {
+                '$gt': fromDate,
+                '$lt': toDate
+            },
+           status: [4, 5, 7]
+    
+        });
+        var shiped = await Product.count({
+            'createAtTime': {
+                '$gt': fromDate,
+                '$lt': toDate
+            },
+           status: 6
+    
+        });
+        res.send({
+            message: 'Thành công',
+            isSuccess: true,
+            data: {
+                countGetting: getting,
+                countShipping: shipping,
+                countShiped: shiped
+            }
         });
     }
+   
 }
 exports.getInforCustomer = async (req, res) => {
     const customer = db.Customer;
@@ -283,13 +292,5 @@ exports.delete = (req, res) => {
                 message: "Có lỗi xảy ra khi xóa"
             });
         });
-
-};
-
-exports.deleteAll = (req, res) => {
-
-};
-
-exports.findAllPublished = (req, res) => {
 
 };

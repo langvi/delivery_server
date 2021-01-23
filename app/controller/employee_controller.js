@@ -6,7 +6,7 @@ exports.findAll = async (req, res) => {
     var { pageIndex } = req.query;
     pageIndex = pageIndex == undefined ? 0 : pageIndex;
     var countEmployee = await Employee.count();
-    Employee.find({}, { name: 1, phoneNumber: 1, avatarUrl: 1 }).limit(pageSize).skip(parseInt(pageIndex) * pageSize)
+    Employee.find({}, { name: 1, phoneNumber: 1, avatarUrl: 1, shipArea: 1 }).limit(pageSize).skip(parseInt(pageIndex) * pageSize)
         .then(data => {
             res.send({
                 message: "Thành công",

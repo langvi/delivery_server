@@ -7,18 +7,16 @@ module.exports = mongoose => {
             receiveBy: String,
             addressSend: String,
             addressReceive: String,
-            shipedAt: Date,
-            enterAt: Date,
+            shipedAt: Number,
+            enterAt: Number,
             costShip: Number,
-            shippingAt: Date,
-            createAt: Date,
+            shippingAt: Number,
+            createAtTime: Number,
             costProduct: Number,
-            statusShip: Number,
+            status: Number,
             phoneSend: String,
             phoneReceive: String,
             note: String,
-            isSuccess: Boolean,
-            isEnter: Boolean
         },
         { timestamps: true }
     );

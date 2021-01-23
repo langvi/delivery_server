@@ -17,12 +17,14 @@ exports.findProductByCustomer = async (req, res) => {
             var totalShipping = 0;
             var totalShiped = 0;
             listProduct.forEach(element => {
-                if (element.statusShip == 0 || element.statusShip == 2) {
-                    totalGetting++;
-                } else if (element.statusShip == 1 && element.isSuccess == false) {
+                if (element.status == 4 || element.status == 5 || element.status == 7) {
                     totalShipping++;
-                } else {
+                } else if (element.status == 6) {
                     totalShiped++;
+
+                } else {
+                    totalGetting++;
+
                 }
             });
             res.send({
