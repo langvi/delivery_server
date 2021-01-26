@@ -1,13 +1,15 @@
 const db = require("../models");
 const Product = db.Product;
 
-exports.create = (req, res) => {
+exports.create = async (req, res) => {
     if (!req.body) {
         return res.status(400).send({
             message: "Dữ liệu không được để trống"
         });
     }
+    var maxId = await Product.findOne({}, { productId: 1 }).sort({ productId: -1 }).limit(1);
     const product = new Product({
+        productId: maxId.productId + 1,
         nameProduct: req.body.nameProduct,
         sendFrom: req.body.sendFrom,
         receiveBy: req.body.receiveBy,
@@ -40,59 +42,70 @@ exports.create = (req, res) => {
 };
 exports.enterProducts = async (req, res) => {
     const id = req.body.productId;
-    try {
-        var data = await Product.findOne().where('_id').equals(id);
-        if (data.status == 7) {
-            res.send({
-                message: "Đơn hàng đã nhập",
-                isSuccess: false,
-                data: null
-            });
-        }
-        else if (data.status == 2 || data.status == 5) {
-            var result = await Product.findByIdAndUpdate(id, {
-                enterAt: new Date().getTime(),
-                status: 7,
-                useFindAndModify: false
-            });
-            if (result) {
-                var product = await Product.findOne().where('_id').equals(id);
-                res.send({
-                    message: "Nhập thành công",
-                    isSuccess: true,
-                    data: product
-                });
-            }
-        }
-        else if (data.status == 1 || data.status == 3 || data.status == 0) {
-            res.send({
-                message: "Đơn hàng chưa lấy thành công",
-                isSuccess: false,
-                data: null
-            });
-        }
-        else if (data.status == 4) {
-            res.send({
-                message: "Đơn hàng đang giao",
-                isSuccess: false,
-                data: null
-            });
-        }
-        else {
-            res.send({
-                message: "Đơn hàng đã giao",
-                isSuccess: false,
-                data: null
-            });
-        }
-
-    } catch (e) {
+    const numId = parseInt(id);
+    if (id.length != 7) {
         res.send({
             message: "Mã đơn hàng không tồn tại",
             isSuccess: false,
             data: null
         });
+    } else {
+        try {
+            var data = await Product.findOne().where('productId').equals(numId);
+            if (data.status == 7) {
+                res.send({
+                    message: "Đơn hàng đã nhập",
+                    isSuccess: false,
+                    data: null
+                });
+            }
+            else if (data.status == 2 || data.status == 5) {
+                var result = await Product.findOneAndUpdate(
+                    { productId: numId }, {      
+                    enterAt: new Date().getTime(),
+                    status: 7,
+                    useFindAndModify: false
+                });
+                if (result) {
+                    var product = await Product.findOne().where('productId').equals(numId);
+                    res.send({
+                        message: "Nhập thành công",
+                        isSuccess: true,
+                        data: null
+                    });
+                }
+            }
+            else if (data.status == 1 || data.status == 3 || data.status == 0) {
+                res.send({
+                    message: "Đơn hàng chưa lấy thành công",
+                    isSuccess: false,
+                    data: null
+                });
+            }
+            else if (data.status == 4) {
+                res.send({
+                    message: "Đơn hàng đang giao",
+                    isSuccess: false,
+                    data: null
+                });
+            }
+            else {
+                res.send({
+                    message: "Đơn hàng đã giao",
+                    isSuccess: false,
+                    data: null
+                });
+            }
+
+        } catch (e) {
+            res.send({
+                message: "Mã đơn hàng không tồn tại",
+                isSuccess: false,
+                data: null
+            });
+        }
     }
+
 }
 exports.inforProduct = async (req, res) => {
     try {
@@ -134,30 +147,30 @@ exports.getInforProductByTime = async (req, res) => {
                 countShiped: countShiped
             }
         })
-    }else{
+    } else {
         var getting = await Product.count({
             'createAtTime': {
                 '$gt': fromDate,
                 '$lt': toDate
             },
-           status: [0, 1, 2, 3]
-    
+            status: [0, 1, 2, 3]
+
         });
         var shipping = await Product.count({
             'createAtTime': {
                 '$gt': fromDate,
                 '$lt': toDate
             },
-           status: [4, 5, 7]
-    
+            status: [4, 5, 7]
+
         });
         var shiped = await Product.count({
             'createAtTime': {
                 '$gt': fromDate,
                 '$lt': toDate
             },
-           status: 6
-    
+            status: 6
+
         });
         res.send({
             message: 'Thành công',
@@ -169,7 +182,7 @@ exports.getInforProductByTime = async (req, res) => {
             }
         });
     }
-   
+
 }
 exports.getInforCustomer = async (req, res) => {
     const customer = db.Customer;
@@ -198,49 +211,113 @@ exports.getInforCustomer = async (req, res) => {
 exports.findAll = (req, res) => {
     const pageSize = 10;
     var { pageIndex } = req.query;
+    var { type } = req.query;
 
     pageIndex = pageIndex == undefined ? 0 : pageIndex;
-    Product.find().limit(pageSize).skip(parseInt(pageIndex) * pageSize)
-        .then(data => {
-            res.send({
-                message: "Thành công",
-                isSuccess: true,
-                data: data
+    if (type == 0) {
+        Product.find().limit(pageSize).skip(parseInt(pageIndex) * pageSize)
+            .then(data => {
+                res.send({
+                    message: "Thành công",
+                    isSuccess: true,
+                    data: data
+                });
+            })
+            .catch(err => {
+                res.status(500).send({
+                    message:
+                        err.message || "Lỗi lấy tất cả sản phẩm"
+                });
             });
-        })
-        .catch(err => {
-            res.status(500).send({
-                message:
-                    err.message || "Lỗi lấy tất cả sản phẩm"
+    } else if (type == 1) {
+        Product.find({
+            status: [0, 1, 2, 3]
+        }).limit(pageSize).skip(parseInt(pageIndex) * pageSize)
+            .then(data => {
+                res.send({
+                    message: "Thành công",
+                    isSuccess: true,
+                    data: data
+                });
+            })
+            .catch(err => {
+                res.status(500).send({
+                    message:
+                        err.message || "Lỗi"
+                });
             });
-        });
+    } else if (type == 2) {
+        Product.find({
+            status: [4, 5, 7]
+        }).limit(pageSize).skip(parseInt(pageIndex) * pageSize)
+            .then(data => {
+                res.send({
+                    message: "Thành công",
+                    isSuccess: true,
+                    data: data
+                });
+            })
+            .catch(err => {
+                res.status(500).send({
+                    message:
+                        err.message || "Lỗi"
+                });
+            });
+    } else {
+        Product.find({
+            status: 6
+        }).limit(pageSize).skip(parseInt(pageIndex) * pageSize)
+            .then(data => {
+                res.send({
+                    message: "Thành công",
+                    isSuccess: true,
+                    data: data
+                });
+            })
+            .catch(err => {
+                res.status(500).send({
+                    message:
+                        err.message || "Lỗi"
+                });
+            });
+    }
+
 
 };
 
-exports.findOne = (req, res) => {
-    const id = req.params.id;
-    Product.findById(id).then(data => {
-        if (!data)
-            res.status(200).send({
-                message: "Không tìm thấy sản phẩm với id =" + id,
-                isSuccess: false,
-                data: null
-            });
-        else res.send({
-            message: "Thành công",
-            isSuccess: true,
-            data: data
-        });
-    }).catch(err => {
-        res
-            .status(200)
-            .send({
+exports.findOne = async (req, res) => {
+    try {
+        var query = req.params.id;
+        if (query.length == 7) {
+            const id = parseInt(query);
+
+            var product = await Product.findOne({ productId: id });
+            if (product) {
+                res.send({
+                    message: "Thành công",
+                    isSuccess: true,
+                    data: product
+                });
+            } else {
+                res.send({
+                    message: "Không tìm thấy sản phẩm",
+                    isSuccess: false,
+                    data: null
+                });
+            }
+        } else {
+            res.send({
                 message: "Không tìm thấy sản phẩm",
                 isSuccess: false,
                 data: null
             });
-    });
+        }
 
+    } catch (e) {
+        res.status(500).send({
+            message: 'Lỗi'
+        });
+    }
 };
 
 exports.update = (req, res) => {

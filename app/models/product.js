@@ -1,7 +1,7 @@
 module.exports = mongoose => {
     var schema = mongoose.Schema(
         {
-
+            productId: Number,
             nameProduct: String,
             sendFrom: String,
             receiveBy: String,

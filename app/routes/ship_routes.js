@@ -4,6 +4,7 @@ module.exports = app => {
   const auth = require("../controller/auth_controller.js");
   const customer = require("../controller/customer_controller.js");
   const employee = require("../controller/employee_controller.js");
+  const shipArea = require("../controller/area_controller.js");
 
   var router = require("express").Router();
   // for login
@@ -41,13 +42,19 @@ module.exports = app => {
   router.get("/getProductCustomer/", authMiddle.isAuth, customer.findProductByCustomer);
 
   router.get("/getAllCustomer/", authMiddle.isAuth, customer.findAllCustomer);
+  // customer area
+  router.get("/getCustomerByArea/", authMiddle.isAuth, shipArea.getCustomerByArea);
+  //
   router.put("/updateCustomer/:id", authMiddle.isAuth, customer.updateCustomer);
+  router.get("/findByName", authMiddle.isAuth, customer.findCustomerByName);
 
   // for employee 
   router.get("/getAllEmployee/", authMiddle.isAuth, employee.findAll);
   router.get("/getDetailEmployee/", authMiddle.isAuth, employee.findDetailEmployee);
-  router.get("/findProductByTime/", authMiddle.isAuth, employee.findProductsByTime);
+  router.get("/productByTime/", authMiddle.isAuth, employee.findProductsByTime);
+  // router.get("/getCountShipper/", authMiddle.isAuth, employee.getCountProductByShipper);
   router.put("/updateEmployee/:id", authMiddle.isAuth, employee.updateEmployee);
+  router.put("/findEmployee/", authMiddle.isAuth, employee.findEmployee);
 
 
 

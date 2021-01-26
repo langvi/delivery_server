@@ -8,12 +8,8 @@ const db = {
     Product: require("./product.js")(mongoose),
     User: require("./user.js")(mongoose),
     Customer:  require("./customer.js")(mongoose),
-    Employee:  require("./employee.js")(mongoose)
+    Employee:  require("./employee.js")(mongoose),
+    ShipArea: require("./ship_area.js")(mongoose)
 
 };
-// db.mongoose = mongoose;
-// db.url = dbConfig.url;
-// db.Product = require("./product.js")(mongoose);
-// db.login = require("./login.js")(mongoose);
-
 module.exports = db;

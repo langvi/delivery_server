@@ -1,12 +1,11 @@
 module.exports = mongoose => {
     var schema = mongoose.Schema(
-        {
+        {   
+            areaId: Number,
             name: String,
-            totalProduct: Number,
-            totalGetting: Number,
-            totalShipping: Number,
-            totalShipped: Number,
-            
+            customers: Array,
+            shippers: Array
+
         },
         { timestamps: true }
     );
@@ -15,6 +14,6 @@ module.exports = mongoose => {
         object.id = _id;
         return object;
     });
-    const user = mongoose.model("accounts", schema);
-    return user;
+    const area = mongoose.model("shipAreas", schema);
+    return area;
 };

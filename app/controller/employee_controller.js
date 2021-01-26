@@ -1,12 +1,13 @@
 const db = require("../models");
 const Employee = db.Employee;
+const Product = db.Product;
 exports.findAll = async (req, res) => {
 
     const pageSize = 10;
     var { pageIndex } = req.query;
     pageIndex = pageIndex == undefined ? 0 : pageIndex;
     var countEmployee = await Employee.count();
-    Employee.find({}, { name: 1, phoneNumber: 1, avatarUrl: 1, shipArea: 1 }).limit(pageSize).skip(parseInt(pageIndex) * pageSize)
+    Employee.find({}, { name: 1, phoneNumber: 1, avatarUrl: 1, shipArea: 1, dayWork: 1 }).limit(pageSize).skip(parseInt(pageIndex) * pageSize)
         .then(data => {
             res.send({
                 message: "Thành công",
@@ -43,31 +44,78 @@ exports.findDetailEmployee = (req, res) => {
         });
 
 };
-exports.findProductsByTime = async (req, res) => {
-    const _id = req.query;
-    var data = await Employee.findOne({ _id });
-    if (data) {
-        var productIds = data.products;
-        var productEm = [];
-        const Product = db.Product;
-        for (var index = 0; index < productIds.length; index++) {
-            var product = await Product.findById(productIds[index]);
-            productEm.push(product);
-        }
+exports.getCountProductByShipper = async (req, res) => {
+    try {
+        var { fromDate } = req.query;
+        var { toDate } = req.query;
+        var { _id } = req.query;
+        var ids = await Employee.findOne({}, { products: 1 });
+        ids.products.forEach(element => {
+
+        });
+        // var countSuccess = await Product.count(
+        //     {
+        //         'createAtTime': {
+        //             '$gt': fromDate,
+        //             '$lt': toDate
+        //         },
+        //         status: [2, 6]
+        //     });
+        // var countFailure = await Product.count({
+        //     'createAtTime': {
+        //         '$gt': fromDate,
+        //         '$lt': toDate
+        //     },
+        //     status: [3, 5]
+        // });
         res.send({
             message: "Thành công",
             isSuccess: true,
-            data: productEm
+            data: ids
+            // data: {
+            //     success: countSuccess,
+            //     failure: countFailure
+            // }
+        });
+    } catch (e) {
+        console.log(e);
+        res.status(500).send({
+            message: 'Lỗi'
         });
     }
-    else {
+}
+exports.findProductsByTime = async (req, res) => {
+    var { fromDate } = req.query;
+    var { toDate } = req.query;
+    var { _id } = req.query;
+    var listProduct = [];
+    try {
+        var ids = await Employee.findOne({}, { products: 1 }).where('_id').equals(_id);
+        for (var index = 0; index < ids.products.length; index++) {
+            var productSuccess = await Product.findOne(
+                {
+                    productId: parseInt(ids.products[index]),
+                }
+            );
+            listProduct.push(productSuccess);
+        }
+        var result = [];
+        listProduct.forEach(element => {
+            if (element.createAtTime > fromDate && element.createAtTime < toDate) {
+                result.push(element);
+            }
+        });
         res.send({
-            message: "Không tìm thấy shipper",
-            isSuccess: false,
-            data: null
+            message: "Thành công",
+            isSuccess: true,
+            data: result
+        });
+    } catch (e) {
+        console.log(e);
+        res.status(500).send({
+            message: 'Lỗi'
         });
     }
-
 }
 exports.updateEmployee = (req, res) => {
     if (!req.body) {
@@ -96,21 +144,29 @@ exports.updateEmployee = (req, res) => {
             });
         });
 }
-// function getProductByTime(type){
-//     const _id = req.query;
-//     var data = await Employee.findOne({ _id });
-//     var productEm = [];
-//     if (data) {
-//         var productIds = data.products;
-//         const Product = db.Product;
-//         for (var index = 0; index < productIds.length; index++) {
-//             // var product = await Product.findById(productIds[index]);
-//             var product = await Product.find({shippingAt: {$lt:}})
+exports.findEmployee = async (req, res) => {
+    try {
+        var { keySearch } = req.query;
+        var names = await Employee.find({}, { name: 1, phoneNumber: 1, avatarUrl: 1, shipArea: 1 });
+        var result = [];
+        names.forEach(element => {
+            if (element.name.toLowerCase().includes(keySearch.toLowerCase())) {
+                result.push(element);
+            }
+        });
 
-//             productEm.push(product);
-//         }
-//     }
-//     if(type == 0){
-
-//     }
-// } 
+        res.send({
+            message: "Thành công",
+            isSuccess: true,
+            data: {
+                customer: result,
+                totalCustomer: result.length
+            }
+        });
+    } catch (e) {
+        console.log(e);
+        res.status(500).send({
+            message: 'Lỗi'
+        });
+    }
+}

@@ -56,8 +56,12 @@ exports.findProductByCustomer = async (req, res) => {
     }
 }
 exports.findAllCustomer = async (req, res) => {
+    const pageSize = 10;
+    var { pageIndex } = req.query;
+
+    pageIndex = pageIndex == undefined ? 0 : pageIndex;
     var countCustomer = await Customer.count();
-    Customer.find({}, { name: 1, phoneNumber: 1, avatarUrl: 1, address: 1 }).
+    Customer.find({}, { name: 1, phoneNumber: 1, avatarUrl: 1, address: 1 }).limit(pageSize).skip(parseInt(pageIndex) * pageSize).
         then(data => {
             res.send({
                 message: "Thành công",
@@ -100,4 +104,30 @@ exports.updateCustomer = (req, res) => {
                 message: "Có lỗi xảy ra khi cập nhật"
             });
         });
+}
+exports.findCustomerByName = async (req, res) => {
+    try {
+        var { keySearch } = req.query;
+        var names = await Customer.find({}, { name: 1, phoneNumber: 1, avatarUrl: 1, address: 1 });
+        var result = [];
+        names.forEach(element => {
+            if (element.name.toLowerCase().includes(keySearch.toLowerCase())) {
+                result.push(element);
+            }
+        });
+
+        res.send({
+            message: "Thành công",
+            isSuccess: true,
+            data: {
+                customer: result,
+                totalCustomer: result.length
+            }
+        });
+    } catch (e) {
+        console.log(e);
+        res.status(500).send({
+            message: 'Lỗi'
+        });
+    }
 }
