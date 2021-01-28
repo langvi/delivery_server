@@ -159,8 +159,8 @@ exports.findEmployee = async (req, res) => {
             message: "Thành công",
             isSuccess: true,
             data: {
-                customer: result,
-                totalCustomer: result.length
+                employees: result,
+                totalShipper: result.length
             }
         });
     } catch (e) {

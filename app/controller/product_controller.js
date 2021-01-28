@@ -7,9 +7,16 @@ exports.create = async (req, res) => {
             message: "Dữ liệu không được để trống"
         });
     }
-    var maxId = await Product.findOne({}, { productId: 1 }).sort({ productId: -1 }).limit(1);
+    var maxId;
+    try {
+        maxId = await Product.findOne({}, { productId: 1 }).sort({ productId: -1 }).limit(1);
+
+    } catch (e) {
+        console.log(e);
+    }
+    var newId = maxId == undefined ? 0 : maxId.productId;
     const product = new Product({
-        productId: maxId.productId + 1,
+        productId: newId + 1,
         nameProduct: req.body.nameProduct,
         sendFrom: req.body.sendFrom,
         receiveBy: req.body.receiveBy,
@@ -61,7 +68,7 @@ exports.enterProducts = async (req, res) => {
             }
             else if (data.status == 2 || data.status == 5) {
                 var result = await Product.findOneAndUpdate(
-                    { productId: numId }, {      
+                    { productId: numId }, {
                     enterAt: new Date().getTime(),
                     status: 7,
                     useFindAndModify: false
@@ -71,7 +78,7 @@ exports.enterProducts = async (req, res) => {
                     res.send({
                         message: "Nhập thành công",
                         isSuccess: true,
-                        data: null
+                        data: product
                     });
                 }
             }
@@ -187,7 +194,8 @@ exports.getInforProductByTime = async (req, res) => {
 exports.getInforCustomer = async (req, res) => {
     const customer = db.Customer;
     var { id } = req.query;
-    var data = await customer.find({ products: { $all: [id] } });
+    var numId = parseInt(id);
+    var data = await customer.find({ products: { $all: [numId.toString()] } });
     if (data.length != 0) {
         res.send({
             message: "Thành công",
@@ -215,7 +223,7 @@ exports.findAll = (req, res) => {
 
     pageIndex = pageIndex == undefined ? 0 : pageIndex;
     if (type == 0) {
-        Product.find().limit(pageSize).skip(parseInt(pageIndex) * pageSize)
+        Product.find().limit(pageSize).skip(parseInt(pageIndex) * pageSize).sort({ createAtTime: -1 })
             .then(data => {
                 res.send({
                     message: "Thành công",
@@ -320,7 +328,7 @@ exports.findOne = async (req, res) => {
     }
 };
 
-exports.update = (req, res) => {
+exports.update = async (req, res) => {
     if (!req.body) {
         return res.status(400).send({
             message: "Dữ liệu không được để trống"
@@ -328,24 +336,38 @@ exports.update = (req, res) => {
     }
 
     const id = req.params.id;
-
-    Product.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
-        .then(data => {
-            if (!data) {
-                res.status(404).send({
-                    message: "Không thể cập nhật dữ liệu"
-                });
-            } else res.send({
-                message: "Cập nhật thành công",
-                isSuccess: true,
-                data: null
-            });
-        })
-        .catch(err => {
-            res.status(500).send({
-                message: "Có lỗi xảy ra khi cập nhật"
-            });
+    try {
+        var data = await Product.update({ productId: id }, {
+            $set: req.body
         });
+        res.send({
+            message: "Cập nhật thành công",
+            isSuccess: true,
+            data: null
+        });
+    } catch (e) {
+        console.log(e);
+        res.status(500).send({
+            message: 'Lỗi'
+        });
+    }
+    // Product.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
+    //     .then(data => {
+    //         if (!data) {
+    //             res.status(404).send({
+    //                 message: "Không thể cập nhật dữ liệu"
+    //             });
+    //         } else res.send({
+    //             message: "Cập nhật thành công",
+    //             isSuccess: true,
+    //             data: null
+    //         });
+    //     })
+    //     .catch(err => {
+    //         res.status(500).send({
+    //             message: "Có lỗi xảy ra khi cập nhật"
+    //         });
+    //     });
 
 };
 

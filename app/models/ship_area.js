@@ -14,6 +14,6 @@ module.exports = mongoose => {
         object.id = _id;
         return object;
     });
-    const area = mongoose.model("shipAreas", schema);
+    const area = mongoose.model("shipareas", schema);
     return area;
 };

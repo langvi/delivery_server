@@ -1,3 +1,4 @@
+const { Product } = require("../models");
 const db = require("../models");
 const Customer = db.Customer;
 // const Product = db.Product;
@@ -10,7 +11,7 @@ exports.findProductByCustomer = async (req, res) => {
             var listProduct = [];
             const Product = db.Product;
             for (var index = 0; index < productIds.length; index++) {
-                var product = await Product.findById(productIds[index]);
+                var product = await Product.findOne().where('productId').equals(productIds[index]);
                 listProduct.push(product);
             }
             var totalGetting = 0;
@@ -52,6 +53,33 @@ exports.findProductByCustomer = async (req, res) => {
             message: "Lỗi",
             isSuccess: false,
             data: null
+        });
+    }
+}
+exports.findOneProductCustomer = async (req, res) => {
+    var { id } = req.query;
+    var { customerId } = req.query;
+    const Product = db.Product;
+    var data = await Customer.findOne().where('_id').equals(customerId);
+    var product = new Product();
+    for (var element in data.products) {
+        if (data.products[element] == id) {
+            product = await Product.findOne().where('productId').equals(id);
+        }
+    }
+
+    if (product.nameProduct == undefined) {
+        res.send({
+            message: "Không tìm thấy mã đơn hàng",
+            isSuccess: false,
+            data: null
+        });
+    }
+    else {
+        res.send({
+            message: "Thành công",
+            isSuccess: true,
+            data: product
         });
     }
 }

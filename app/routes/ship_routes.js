@@ -40,10 +40,12 @@ module.exports = app => {
 
   // for customer
   router.get("/getProductCustomer/", authMiddle.isAuth, customer.findProductByCustomer);
+  router.get("/findOneProduct/", authMiddle.isAuth, customer.findOneProductCustomer);
 
   router.get("/getAllCustomer/", authMiddle.isAuth, customer.findAllCustomer);
   // customer area
   router.get("/getCustomerByArea/", authMiddle.isAuth, shipArea.getCustomerByArea);
+  // router.post("/addArea/",  shipArea.create);
   //
   router.put("/updateCustomer/:id", authMiddle.isAuth, customer.updateCustomer);
   router.get("/findByName", authMiddle.isAuth, customer.findCustomerByName);
@@ -54,7 +56,7 @@ module.exports = app => {
   router.get("/productByTime/", authMiddle.isAuth, employee.findProductsByTime);
   // router.get("/getCountShipper/", authMiddle.isAuth, employee.getCountProductByShipper);
   router.put("/updateEmployee/:id", authMiddle.isAuth, employee.updateEmployee);
-  router.put("/findEmployee/", authMiddle.isAuth, employee.findEmployee);
+  router.get("/findEmployee/", authMiddle.isAuth, employee.findEmployee);
 
 
 
